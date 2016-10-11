@@ -8,15 +8,21 @@ public class TestWS : MonoBehaviour {
 	WebSocketWrapper ws;
     string FireBaseServer = "glaring-torch-9586";
     int version = 5;
+    string urlToConnect;
 	// Use this for initialization
 	void Start () {
-		ws = new WebSocketWrapper(string.Format("wss://{0}.firebaseio.com/.ws?v={1}", FireBaseServer, version));
-		StartCoroutine(ws.Connect());
+        urlToConnect = string.Format("wss://{0}.firebaseio.com/.ws?v={1}", FireBaseServer, version);
+        Connect();
 	}
 	
     void Update(){
         if(ws!=null)
             ParseFireBaseCommand(ws.RecvString());
+    }
+    void Connect(){
+        if(ws!=null) { ws.Close(); ws=null;}
+		ws = new WebSocketWrapper(urlToConnect);
+		StartCoroutine(ws.Connect());
     }
 
     void ParseFireBaseCommand(string command){
@@ -57,14 +63,13 @@ public class TestWS : MonoBehaviour {
         WriteCommand("s",  Json.Deserialize("{\"c\":{\"sdk.js.2-2-9\":1,\"framework.cordova\":1}}") as Dictionary<string,object>); 
         AuthByToken("GHlim3fJZbq5NY5tkQPUYlqfMrc63b9Oq5WQTVKt");
                             
-        PutNode("/sessions/Dinosaurios", "'test android'");
-        SimpleListen("/sessions/Dinosaurios");
+        PutNode("/sessions", "'test android'");
+        SimpleListen("/sessions");
     }
 
     void OnControlReset(string data){
-        ws.Close();
-        ws = new WebSocketWrapper(string.Format( "wss://{0}/.ws?v={1}&ns={2}",data as string, version, FireBaseServer));            
-        StartCoroutine(ws.Connect());
+        urlToConnect = string.Format( "wss://{0}/.ws?v={1}&ns={2}",data as string, version, FireBaseServer);
+        Connect();
     }
 
     void OnData(Dictionary<string,object> json){
