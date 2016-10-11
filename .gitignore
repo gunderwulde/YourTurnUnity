@@ -1,2 +1,7 @@
 Library/
 Android/
+Temp/
+obj/
+*.sln
+*.suo
+*.csproj
