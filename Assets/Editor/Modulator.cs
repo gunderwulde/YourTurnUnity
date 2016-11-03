@@ -311,10 +311,11 @@ public class Modulator : EditorWindow
             System.IO.Directory.CreateDirectory(outputPath);
 
         string[] plugins = System.IO.Directory.GetFiles("Assets", "*.dll", System.IO.SearchOption.AllDirectories);
-
-        string refers = string.Format(" -r:\"{0}/Frameworks/Managed/UnityEngine.dll\" -r:\"{0}/Frameworks/Managed/UnityEditor.dll\"  ", EditorApplication.applicationContentsPath, Application.dataPath);
-//        refers += string.Format(" -r:\"{0}/Frameworks/Mono/lib/mono/unity/mscorlib.dll\" -r:\"{0}//Frameworks/Mono/lib/mono/unity/.dll\"  ", EditorApplication.applicationContentsPath, Application.dataPath);
-       
+#if UNITY_EDITOR_OSX
+        string refers = string.Format(" -r:\"{0}/Managed/UnityEngine.dll\" -r:\"{0}/Managed/UnityEditor.dll\"  ", EditorApplication.applicationContentsPath, Application.dataPath);
+#else        
+        string refers = string.Format(" -r:\"{0}/Mono/lib/mono/unity/mscorlib.dll\" -r:\"{0}/Mono/lib/mono/unity/.dll\"  ", EditorApplication.applicationContentsPath, Application.dataPath);
+#endif       
         foreach (var plug in plugins) {
             var tmp = plug.Replace('\\', '/');
             if (tmp.ToLower().Contains("plugins/")) {
@@ -335,8 +336,11 @@ public class Modulator : EditorWindow
 
         errorReturn = "";
         CompilingProcess = new System.Diagnostics.Process();
+#if UNITY_EDITOR_OSX                
         string exe = string.Format("{0}/Frameworks/Mono/bin/gmcs", EditorApplication.applicationContentsPath);
-//        string exe = "/Applications/Unity/Unity514.app/Contents/Frameworks/Mono/bin/mcs";
+#else
+        string exe = string.Format("{0}/Mono/bin/gmcs", EditorApplication.applicationContentsPath);
+#endif
         CompilingProcess.StartInfo.FileName = exe;
         CompilingProcess.StartInfo.Arguments = string.Format("{0} -target:library {1} -out:{2} /nowarn:436", refers, files, outFile);
         CompilingProcess.StartInfo.RedirectStandardInput = true;
